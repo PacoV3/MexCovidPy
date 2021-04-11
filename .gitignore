@@ -1,2 +1,5 @@
 .vscode
 /venv
+/zip
+__pycache__
+*.zip
