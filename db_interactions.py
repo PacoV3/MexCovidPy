@@ -1,31 +1,41 @@
-import pyodbc
+from sqlalchemy import Column, Integer, Date
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 import pandas as pd
+
+Base = declarative_base()
 
 class DbInteraction:
     def __init__(self, driver, server, database, user, password):
-        self.conn = pyodbc.connect(
-            f'Driver={driver};'
-            f'Server={server};'
-            f'Database={database};'
-            f'UID={user};'
-            f'PWD={password};')
+        self.engine = create_engine(f"mssql+pyodbc://{user}:{password}@{server}/{database}?driver={driver}")
 
-    def get_update_id(self, date_val):
-        df = pd.read_sql(f"SELECT TOP 1 UpdateDateId FROM UpdateDates WHERE DateUpdate = '{date_val}'", self.conn)
-        result = -1 if df.empty else df['UpdateDateId'][0]
-        return result
+class UpdateDates(Base):
+    __tablename__ = "UpdateDates"
+    Id = Column(Integer, primary_key=True)
+    UpdateDate = Column(Date)
 
 def main():
-    from datetime import date
-    db = DbInteraction('{ODBC Driver 17 for SQL Server}', 'localhost,1433', 'MexCovidPy', 'sa', 'this_isAstrong!password')
+    from sqlalchemy import inspect
+    from datetime import date, datetime
 
-    date_val = date(2020, 4, 11)
-    data = db.get_update_id(date_val)
-    print(data)
+    db = DbInteraction('ODBC Driver 17 for SQL Server', 'localhost,1433',
+        'mex_covid_py', 'sa', 'this_isAstrong!password')
 
-    date_val = date(2020, 4, 12)
-    data = db.get_update_id(date_val)
-    print(data)
+    Base.metadata.bind = db.engine    
+    Base.metadata.drop_all()
+    Base.metadata.create_all()
+
+    Session = sessionmaker(bind=db.engine)
+    ses = Session()
+    dates = pd.date_range(start="2020-04-12",end="2022-04-12").to_pydatetime().tolist()
+    ses.add_all([UpdateDates(UpdateDate = x.date()) for x in dates])
+    ses.commit()
+
+    rs = ses.query(UpdateDates).all()
+
+    # for u_date in rs:
+    #     print(u_date.UpdateDate)
 
 if __name__ == '__main__':
     main()
