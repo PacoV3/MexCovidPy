@@ -11,7 +11,7 @@ def populate_upload(ses):
 
 
 def populate_states(ses):
-    with open('sql/states.json', 'r') as f:
+    with open('data/states.json', 'r') as f:
         data = load(f)
 
     db_states = []
@@ -22,7 +22,7 @@ def populate_states(ses):
 
 
 def populate_cities(ses):
-    with open('sql/cities.json', 'r') as f:
+    with open('data/cities.json', 'r') as f:
         data = load(f)
 
     db_cities = []
@@ -38,9 +38,9 @@ def main():
 
     Session = sessionmaker(bind=db.engine)
     ses = Session()
-    populate_upload(ses)
-    populate_states(ses)
-    populate_cities(ses)
+    # populate_upload(ses)
+    # populate_states(ses)
+    # populate_cities(ses)
     ses.commit()
 
 

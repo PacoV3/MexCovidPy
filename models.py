@@ -16,6 +16,8 @@ class Upload(Base):
     __tablename__ = "upload"
     id = Column(Integer, primary_key=True)
     up_date = Column(Date)
+    daily_city_summaries = relationship(
+        "DailyCitySummary", back_populates="upload")
 
 
 class State(Base):
@@ -36,6 +38,21 @@ class City(Base):
     longitude = Column(Float)
     state_id = Column(Integer, ForeignKey('state.id'))
     state = relationship("State", back_populates="cities")
+    daily_city_summaries = relationship("DailyCitySummary", back_populates="city")
+
+
+class DailyCitySummary(Base):
+    __tablename__ = "daily_city_summary"
+    id = Column(Integer, primary_key=True)
+    confirmed = Column(Integer)
+    negatives = Column(Integer)
+    suspects = Column(Integer)
+    deaths = Column(Integer)
+    recovered = Column(Integer)
+    city_id = Column(Integer, ForeignKey('city.id'))
+    city = relationship("City", back_populates="daily_city_summaries")
+    upload_id = Column(Integer, ForeignKey('upload.id'))
+    upload = relationship("Upload", back_populates="daily_city_summaries")
 
 
 def main():
