@@ -7,9 +7,9 @@ Base = declarative_base()
 
 
 class DbInteraction:
-    def __init__(self, driver, server, database, user, password):
+    def __init__(self, server, database, user, password):
         self.engine = create_engine(
-            f"mssql+pyodbc://{user}:{password}@{server}/{database}?driver={driver}")
+            f"postgresql+psycopg2://{user}:{password}@{server}/{database}")
 
 
 class Upload(Base):
@@ -36,9 +36,11 @@ class City(Base):
     city_name = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
+    city_code = Column(Integer)
     state_id = Column(Integer, ForeignKey('state.id'))
     state = relationship("State", back_populates="cities")
-    daily_city_summaries = relationship("DailyCitySummary", back_populates="city")
+    daily_city_summaries = relationship(
+        "DailyCitySummary", back_populates="city")
 
 
 class DailyCitySummary(Base):
@@ -56,8 +58,8 @@ class DailyCitySummary(Base):
 
 
 def main():
-    db = DbInteraction('ODBC Driver 17 for SQL Server', 'localhost,1433',
-                       'mex_covid_py', 'sa', 'this_isAstrong!password')
+    db = DbInteraction('localhost,5432', 'mex_covid_py',
+                       'postgres', 'this_isAstrong#password')
 
     Base.metadata.bind = db.engine
     Base.metadata.drop_all()

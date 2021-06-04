@@ -1,5 +1,6 @@
-from models import Upload, City, State, DbInteraction
+from models import Upload, City, State, DailyCitySummary, DbInteraction
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select
 from json import load
 import pandas as pd
 
@@ -27,21 +28,28 @@ def populate_cities(ses):
 
     db_cities = []
     for c in data['mx_cities']:
-        db_cities.append(City(state_id=c[0], city_name=c[1],
-                              latitude=c[2], longitude=c[3]))
+        db_cities.append(City(city_code=c[0], state_id=c[1], city_name=c[2],
+                              latitude=c[3], longitude=c[4]))
     ses.add_all(db_cities)
 
 
 def main():
-    db = DbInteraction('ODBC Driver 17 for SQL Server', 'localhost,1433',
-                       'mex_covid_py', 'sa', 'this_isAstrong!password')
+    db = DbInteraction('localhost,5432', 'mex_covid_py',
+                       'postgres', 'this_isAstrong#password')
 
     Session = sessionmaker(bind=db.engine)
     ses = Session()
     # populate_upload(ses)
     # populate_states(ses)
     # populate_cities(ses)
-    ses.commit()
+    # cities = {}
+    # result = ses.execute(
+    #     select(City.id, City.city_code, City.state_id)
+    # )
+    # for id, city_code, state_id in result:
+    #     cities[(city_code, state_id)] = id
+    # print(cities)
+    # ses.commit()
 
 
 if __name__ == '__main__':
