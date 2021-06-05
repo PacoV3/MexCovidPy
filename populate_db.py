@@ -42,13 +42,18 @@ def main():
     # populate_upload(ses)
     # populate_states(ses)
     # populate_cities(ses)
-    # cities = {}
-    # result = ses.execute(
-    #     select(City.id, City.city_code, City.state_id)
-    # )
-    # for id, city_code, state_id in result:
-    #     cities[(city_code, state_id)] = id
-    # print(cities)
+    cities = {}
+    daily_city_summaries = []
+    result = ses.execute(
+        select(City.id, City.city_code, City.state_id)
+    )
+    for id, city_code, state_id in result:
+        # Dictionary to search the index of the city inside
+        # daily_city_summaries by (city_code, state_id)
+        cities[(city_code, state_id)] = id
+        # Add upload_id
+        daily_city_summaries.append(DailyCitySummary(city_id=id))
+    print(cities)
     # ses.commit()
 
 
