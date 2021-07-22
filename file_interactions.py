@@ -1,3 +1,4 @@
+from datetime import datetime, date
 from zipfile import ZipFile
 from csv import DictReader
 import requests
@@ -10,7 +11,6 @@ class FileInteractions:
         self.folder_path = folder_path
         self.url = url
 
-
     def download_url(self, chunk_size=128):
         r = requests.get(self.url, stream=True)
         if not os.path.exists(self.folder_path):
@@ -19,32 +19,39 @@ class FileInteractions:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 fd.write(chunk)
 
-
     def extract_csv(self):
         file_name = ''
-        with ZipFile(self.zip_path,'r') as myzip:
+        with ZipFile(self.zip_path, 'r') as myzip:
             file_name = myzip.namelist()[0]
             myzip.extractall(self.folder_path)
         os.remove(self.zip_path)
         return file_name
 
-
     def get_csv_date(self, file_name):
-        from datetime import datetime
         date_vals = file_name[:6]
-        return datetime.strptime(date_vals, '%y%m%d')
+        return datetime.strptime(date_vals, '%y%m%d').date()
 
     def get_indicators(self, cities, file_name):
+        file_date = self.get_csv_date(file_name)
+        change_format = date(2020,10,7)
         with open(f'{self.folder_path}/{file_name}', 'r', encoding="ISO-8859-1") as csv_f:
             f = DictReader(csv_f)
             for row in f:
-                city_index = (int(row['MUNICIPIO_RES']), int(row['ENTIDAD_RES']))
+                city_index = (int(row['MUNICIPIO_RES']),
+                              int(row['ENTIDAD_RES']))
                 if city_index in cities:
-                    if int(row['RESULTADO']) == 1:
-                        cities[city_index]['confirmed'] += 1
+                    if file_date < change_format:
+                        if int(row['RESULTADO']) == 1:
+                            cities[city_index]['confirmed'] += 1
+                            if row['FECHA_DEF'] != '9999-99-99':
+                                cities[city_index]['deaths'] += 1
+                    else:
+                        if int(row['CLASIFICACION_FINAL']) in (1,2,3):
+                            cities[city_index]['confirmed'] += 1
+                            if row['FECHA_DEF'] != '9999-99-99':
+                                cities[city_index]['deaths'] += 1
         return cities
 
-    
     def confirmed(self, row, date):
         if int(row['RESULTADO']) == 1:
-            pass            
+            pass
