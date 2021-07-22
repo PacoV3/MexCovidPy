@@ -37,21 +37,20 @@ class FileInteractions:
         with open(f'{self.folder_path}/{file_name}', 'r', encoding="ISO-8859-1") as csv_f:
             f = DictReader(csv_f)
             for row in f:
-                city_index = (int(row['MUNICIPIO_RES']),
-                              int(row['ENTIDAD_RES']))
+                city_index = (int(row['MUNICIPIO_RES']), int(row['ENTIDAD_RES']))
                 if city_index in cities:
-                    if file_date < change_format:
-                        if int(row['RESULTADO']) == 1:
-                            cities[city_index]['confirmed'] += 1
-                            if row['FECHA_DEF'] != '9999-99-99':
-                                cities[city_index]['deaths'] += 1
-                    else:
-                        if int(row['CLASIFICACION_FINAL']) in (1,2,3):
-                            cities[city_index]['confirmed'] += 1
-                            if row['FECHA_DEF'] != '9999-99-99':
-                                cities[city_index]['deaths'] += 1
+                    confirmed_state = self.confirmed(row, file_date, change_format)
+                    if confirmed_state:
+                        cities[city_index]['confirmed'] += 1
+                        if row['FECHA_DEF'] != '9999-99-99':
+                            cities[city_index]['deaths'] += 1
         return cities
 
-    def confirmed(self, row, date):
-        if int(row['RESULTADO']) == 1:
-            pass
+    def confirmed(self, row, file_date, change_format):
+        if file_date < change_format:
+            if int(row['RESULTADO']) == 1:
+                return True
+        else:
+            if int(row['CLASIFICACION_FINAL']) in (1,2,3):
+                return True
+        return False

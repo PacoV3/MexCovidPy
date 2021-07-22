@@ -40,8 +40,8 @@ def main():
     Session = sessionmaker(bind=db.engine)
     ses = Session()
     # populate_upload(ses)
-    # populate_states(ses)
-    # populate_cities(ses)
+    populate_states(ses)
+    populate_cities(ses)
     cities = {}
     daily_city_summaries = []
     result = ses.execute(
@@ -54,7 +54,7 @@ def main():
         # Add upload_id
         daily_city_summaries.append(DailyCitySummary(city_id=id))
     print(cities)
-    # ses.commit()
+    ses.commit()
 
 
 if __name__ == '__main__':
