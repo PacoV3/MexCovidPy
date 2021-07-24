@@ -6,9 +6,9 @@ import os
 
 
 class FileInteractions:
-    def __init__(self, zip_path, folder_path, url):
-        self.zip_path = zip_path
+    def __init__(self, folder_path, zip_path='zip/file.zip', url='http://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/datos_abiertos_covid19.zip'):
         self.folder_path = folder_path
+        self.zip_path = zip_path
         self.url = url
 
     def download_url(self, chunk_size=128):
@@ -37,7 +37,7 @@ class FileInteractions:
         with open(f'{self.folder_path}/{file_name}', 'r', encoding="ISO-8859-1") as csv_f:
             f = DictReader(csv_f)
             for row in f:
-                city_index = (int(row['MUNICIPIO_RES']), int(row['ENTIDAD_RES']))
+                city_index = tuple(map(int, (row['MUNICIPIO_RES'], row['ENTIDAD_RES'])))
                 if city_index in cities:
                     confirmed_state = self.confirmed(row, file_date, change_format)
                     if confirmed_state:
